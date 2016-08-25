@@ -1,0 +1,48 @@
+{
+  "name": "@creditkarma/graphql-loader",
+  "version": "0.1.0",
+  "description": "Build a GraphQL Schema by loading .graphql files based a glob pattern",
+  "main": "./dist/index.js",
+  "scripts": {
+    "clean": "rimraf coverage/ dist/ node_modules/ typings/",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "lint": "tslint src/**/*",
+    "typings": "typings install",
+    "pretest": "npm run build",
+    "test": "npm run test:only --",
+    "test:watch": "npm test -- -w",
+    "test:only": "mocha --compilers js:babel-core/register --reporter spec --full-trace ./dist/test/tests.js",
+    "coverage": "babel-node ./node_modules/.bin/istanbul cover _mocha -- --full-trace ./dist/test/tests.js",
+    "postcoverage": "remap-istanbul --input coverage/coverage.raw.json --type lcovonly --output coverage/lcov.info"
+  },
+  "keywords": [
+    "GraphQL"
+  ],
+  "author": "Credit Karma",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "babel-cli": "^6.10.1",
+    "babel-core": "^6.10.4",
+    "babel-polyfill": "^6.9.1",
+    "babel-preset-es2015": "^6.9.0",
+    "chai": "^3.5.0",
+    "istanbul": "1.1.0-alpha.1",
+    "mkdirp": "^0.5.1",
+    "mocha": "^2.5.3",
+    "remap-istanbul": "^0.5.1",
+    "rimraf": "^2.5.4",
+    "source-map-support": "^0.4.0",
+    "tslint": "^3.13.0",
+    "typescript": "^2.0.0",
+    "typings": "^1.3.1"
+  },
+  "dependencies": {
+    "glob": "^7.0.5",
+    "graphql": "^0.6.1"
+  },
+  "typings": "dist/index.d.ts",
+  "typescript": {
+    "definition": "dist/index.d.ts"
+  }
+}
