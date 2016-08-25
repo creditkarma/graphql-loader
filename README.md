@@ -35,9 +35,9 @@ type RootQuery {
 Create a schema with the following code:
 
 ```js
-const loadSchema = require('@creditkarma/graphql-loader')
+const loader = require('@creditkarma/graphql-loader')
 
-loadSchema('./schema/*.graphql', (err, schema) => {
+loader.loadSchema('./schema/*.graphql', (err, schema) => {
   console.log(schema.getQueryType().toString())
 })
 ```
@@ -45,9 +45,9 @@ loadSchema('./schema/*.graphql', (err, schema) => {
 Create a schema using promises:
 
 ```js
-const loadSchema = require('@creditkarma/graphql-loader')
+const loader = require('@creditkarma/graphql-loader')
 
-loadSchema('./schema/*.graphql').then((schema) => {
+loader.loadSchema('./schema/*.graphql').then((schema) => {
   console.log(schema.getQueryType().toString())
 })
 ```
@@ -55,9 +55,9 @@ loadSchema('./schema/*.graphql').then((schema) => {
 Create a schema using sync:
 
 ```js
-const loadSchema = require('@creditkarma/graphql-loader')
+const loader = require('@creditkarma/graphql-loader')
 
-const schema = loadSchemaSync('./schema/*.graphql')
+const schema = loader.loadSchema.sync('./schema/*.graphql')
 console.log(schema.getQueryType().toString())
 
 ```

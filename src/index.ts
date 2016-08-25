@@ -96,4 +96,4 @@ function readFileSync(fileName: string): string {
   return fs.readFileSync(fileName, 'utf8')
 }
 
-export default loadSchema
+export { loadSchema }

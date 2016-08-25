@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import loadSchema from './index'
+import { loadSchema } from './index'
 import * as graphql from 'graphql'
 import * as fs from 'fs'
 import * as rimraf from 'rimraf'
