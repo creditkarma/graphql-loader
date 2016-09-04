@@ -8,6 +8,6 @@
   "globalDependencies": {
     "mkdirp": "registry:dt/mkdirp#0.3.0+20160317120654",
     "mocha": "registry:dt/mocha#2.2.5+20160720003353",
-    "node": "registry:dt/node#6.0.0+20160823142437"
+    "node": "registry:dt/node#6.0.0+20160831021119"
   }
 }
