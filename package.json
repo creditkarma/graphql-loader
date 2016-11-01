@@ -39,7 +39,9 @@
   },
   "dependencies": {
     "glob": "^7.0.5",
-    "graphql": "^0.6.1"
+  },
+  "peerDependencies": {
+    "graphql": "^0.6.1 || ^0.7.0"
   },
   "typings": "dist/index.d.ts",
   "typescript": {
