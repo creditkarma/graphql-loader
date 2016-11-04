@@ -1,6 +1,4 @@
 /* tslint:disable */
-import 'babel-polyfill'
-
 process.env.NODE_ENV = 'test';
 
 declare function require(name: string);

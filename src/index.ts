@@ -1,5 +1,5 @@
 import * as fs from 'fs'
-import * as graphql from 'graphql'
+import { GraphQLSchema, parse, buildASTSchema } from 'graphql'
 import * as glob from 'glob'
 
 export class GraphQLLoaderError extends Error {
@@ -12,17 +12,16 @@ export class GraphQLLoaderError extends Error {
   }
 }
 
-export interface SchemaCallback {
-  (err: GraphQLLoaderError, schema: graphql.GraphQLSchema)
+export interface ISchemaCallback {
+  (err: GraphQLLoaderError, schema: GraphQLSchema)
 }
 
-export interface LoadSchemaFunc {
-    (pattern: string, callback?: SchemaCallback): Promise<graphql.GraphQLSchema>
+export interface ILoadSchemaFunc {
+    (pattern: string, callback?: ISchemaCallback): Promise<GraphQLSchema>
     sync?: Function
 }
 
-
-const loadSchema: LoadSchemaFunc = function(pattern: string, callback?: SchemaCallback): Promise<graphql.GraphQLSchema> {
+const loadSchema: ILoadSchemaFunc = function(pattern: string, callback?: ISchemaCallback): Promise<GraphQLSchema> {
   return new Promise(async (resolve, reject) => {
     try {
       const files = await getGlob(pattern)
@@ -45,8 +44,8 @@ function makeSchema(fileNames: string[]): Promise<string> {
 }
 
 function parseSchema(fileData: string) {
-  const doc = graphql.parse(fileData)
-  return graphql.buildASTSchema(doc)
+  const doc = parse(fileData)
+  return buildASTSchema(doc)
 }
 
 function getGlob(pattern: string): Promise<string[]> {
@@ -73,7 +72,7 @@ function readFile(fileName: string): Promise<string> {
   })
 }
 
-loadSchema.sync = function(pattern: string): graphql.GraphQLSchema {
+loadSchema.sync = function(pattern: string): GraphQLSchema {
   const fileNames = getGlobSync(pattern)
   const schema = makeSchemaSync(fileNames)
   return parseSchema(schema)
