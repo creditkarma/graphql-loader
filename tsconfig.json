@@ -13,8 +13,7 @@
     "removeComments": true,
     "types": [
       "typed-graphql",
-      "@types/node",
-      "@types/mocha"
+      "@types/node"
     ]
   },
   "exclude": [
