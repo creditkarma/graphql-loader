@@ -3,7 +3,7 @@ logs
 *.log
 npm-debug.log*
 
-# Coverage directory used by tools like istanbul
+# Coverage directory
 coverage
 
 # Dependency directory

@@ -22,15 +22,13 @@ export interface ILoadSchemaFunc {
 }
 
 const loadSchema: ILoadSchemaFunc = function(pattern: string, callback?: ISchemaCallback): Promise<GraphQLSchema> {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const files = await getGlob(pattern)
-      const schemaFile = await makeSchema(files)
+  return new Promise((resolve, reject) => {
+    getGlob(pattern).then(files => {
+      return makeSchema(files)
+    }).then(schemaFile => {
       const schema = parseSchema(schemaFile)
       callback ? callback(null, schema) : resolve(schema)
-    } catch (err) {
-      callback ? callback(err, null) : reject(err)
-    }
+    }).catch(err => callback ? callback(err, null) : reject(err))
   })
 }
 
@@ -51,8 +49,8 @@ function parseSchema(fileData: string) {
 function getGlob(pattern: string): Promise<string[]> {
   return new Promise((resolve, reject) => {
     glob(pattern, (err, files) => {
-      if (err || files.length === 0) {
-        reject( err || GraphQLLoaderError.zeroMatchError(pattern) )
+      if (files.length === 0) {
+        reject(GraphQLLoaderError.zeroMatchError(pattern) )
       } else {
         resolve(files)
       }
