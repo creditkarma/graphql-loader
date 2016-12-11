@@ -23,12 +23,11 @@ export interface ILoadSchemaFunc {
 
 const loadSchema: ILoadSchemaFunc = function(pattern: string, callback?: ISchemaCallback): Promise<GraphQLSchema> {
   return new Promise((resolve, reject) => {
-    getGlob(pattern).then(files => {
-      return makeSchema(files)
-    }).then(schemaFile => {
-      const schema = parseSchema(schemaFile)
-      callback ? callback(null, schema) : resolve(schema)
-    }).catch(err => callback ? callback(err, null) : reject(err))
+    getGlob(pattern)
+      .then(files => makeSchema(files))
+      .then(schemaFile => parseSchema(schemaFile))
+      .then(schema => callback ? callback(null, schema) : resolve(schema))
+      .catch(err => callback ? callback(err, null) : reject(err))
   })
 }
 
