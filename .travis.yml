@@ -5,6 +5,7 @@ node_js:
   - "4"
 install:
   - npm install
+  - npm install graphql
 
 script:
   - npm test

@@ -9,7 +9,7 @@ Instantiate a GraphQL Schema by loading GraphQL Schema Language files based on a
 ## Installation
 
 ```sh
-npm install --save @creditkarma/graphql-loader
+npm install --save graphql @creditkarma/graphql-loader
 ```
 
 ## Usage
