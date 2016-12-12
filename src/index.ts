@@ -1,6 +1,6 @@
 import * as fs from 'fs'
-import { GraphQLSchema, parse, buildASTSchema } from 'graphql'
 import * as glob from 'glob'
+import { buildASTSchema, GraphQLSchema, parse } from 'graphql'
 
 export class GraphQLLoaderError extends Error {
   public static zeroMatchError(glob: string): GraphQLLoaderError {
@@ -21,13 +21,13 @@ export interface ILoadSchemaFunc {
     sync?: Function
 }
 
-const loadSchema: ILoadSchemaFunc = function(pattern: string, callback?: ISchemaCallback): Promise<GraphQLSchema> {
+const loadSchema: ILoadSchemaFunc = (pattern: string, callback?: ISchemaCallback): Promise<GraphQLSchema> => {
   return new Promise((resolve, reject) => {
     getGlob(pattern)
-      .then(files => makeSchema(files))
-      .then(schemaFile => parseSchema(schemaFile))
-      .then(schema => callback ? callback(null, schema) : resolve(schema))
-      .catch(err => callback ? callback(err, null) : reject(err))
+      .then((files) => makeSchema(files))
+      .then((schemaFile) => parseSchema(schemaFile))
+      .then((schema) => callback ? callback(null, schema) : resolve(schema))
+      .catch((err) => callback ? callback(err, null) : reject(err))
   })
 }
 
