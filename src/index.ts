@@ -69,7 +69,7 @@ function readFile(fileName: string): Promise<string> {
   })
 }
 
-loadSchema.sync = function(pattern: string): GraphQLSchema {
+loadSchema.sync = (pattern: string): GraphQLSchema => {
   const fileNames = getGlobSync(pattern)
   const schema = makeSchemaSync(fileNames)
   return parseSchema(schema)
