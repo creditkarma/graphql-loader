@@ -68,7 +68,6 @@ Install dependencies with
 
 ```sh
 npm install
-npm run typings
 npm install graphql@^0.8.0
 ```
 
