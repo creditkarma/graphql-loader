@@ -62,14 +62,27 @@ console.log(schema.getQueryType().toString())
 
 ```
 
+Create a schema using promises, and then log out the generated `.graphql` contents:
+
+```js
+const graphql = require('graphql')
+const loader = require('@creditkarma/graphql-loader')
+
+loader.loadSchema('./schema/*.graphql').then((schema) => {
+  console.log(graphql.printSchema(schema))
+}).catch(err => console.log(err))
+```
+
 ## Development
 
 Install dependencies with
 
 ```sh
 npm install
-npm run typings
+npm install graphql@^0.8.0
 ```
+
+The `graphql` package is needed for tests to succeed, but is only included as a peer dependency.
 
 ### Build
 
