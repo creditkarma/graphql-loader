@@ -25,7 +25,7 @@ const loadSchema: ILoadSchemaFunc = (pattern: string, callback?: ISchemaCallback
   return new Promise((resolve, reject) => {
     getGlob(pattern)
       .then((fileNames) => readAllFiles(fileNames))
-      .then((fileContentArr) => fileContentArr.join(""))
+      .then((fileContentArr) => fileContentArr.join("\n"))
       .then((schemaFile) => parseSchema(schemaFile))
       .then((schema) => callback ? callback(null, schema) : resolve(schema))
       .catch((err) => callback ? callback(err, null) : reject(err))
