@@ -69,7 +69,10 @@ Install dependencies with
 ```sh
 npm install
 npm run typings
+npm install graphql@^0.8.0
 ```
+
+The `graphql` package is needed for tests to succeed, but is only included as a peer dependency.
 
 ### Build
 
