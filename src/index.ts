@@ -25,6 +25,7 @@ const loadSchema: ILoadSchemaFunc = (pattern: string, callback?: ISchemaCallback
   return new Promise((resolve, reject) => {
     getGlob(pattern)
       .then((fileNames) => readAllFiles(fileNames))
+      .then((fileContentArr) => filterIgnoredFiles(fileContentArr))
       .then((fileContentArr) => fileContentArr.join("\n"))
       .then((schemaFile) => parseSchema(schemaFile))
       .then((schema) => callback ? callback(null, schema) : resolve(schema))
@@ -46,6 +47,13 @@ function getGlob(pattern: string): Promise<string[]> {
         resolve(files)
       }
     })
+  })
+}
+
+function filterIgnoredFiles(files: string[]): string[] {
+  return files.filter((file) => {
+    let firstLine = file.split("\n", 1)[0]
+    return firstLine !== "#ignore" && firstLine !== "# ignore"
   })
 }
 
