@@ -24,19 +24,11 @@ export interface ILoadSchemaFunc {
 const loadSchema: ILoadSchemaFunc = (pattern: string, callback?: ISchemaCallback): Promise<GraphQLSchema> => {
   return new Promise((resolve, reject) => {
     getGlob(pattern)
-      .then((files) => makeSchema(files))
+      .then((fileNames) => readAllFiles(fileNames))
+      .then((fileContentArr) => fileContentArr.join(""))
       .then((schemaFile) => parseSchema(schemaFile))
       .then((schema) => callback ? callback(null, schema) : resolve(schema))
       .catch((err) => callback ? callback(err, null) : reject(err))
-  })
-}
-
-function makeSchema(fileNames: string[]): Promise<string> {
-  const promises = fileNames.map(readFile)
-  return Promise.all( promises ).then((fileContentArr: string[]) => {
-    return fileContentArr.join()
-  }).catch((err) => {
-    throw err
   })
 }
 
@@ -55,6 +47,10 @@ function getGlob(pattern: string): Promise<string[]> {
       }
     })
   })
+}
+
+function readAllFiles(fileNames: string[]): Promise<string[]> {
+  return Promise.all(fileNames.map(readFile))
 }
 
 function readFile(fileName: string): Promise<string> {
