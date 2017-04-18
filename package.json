@@ -1,6 +1,6 @@
 {
   "name": "@creditkarma/graphql-loader",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Build a GraphQL Schema by loading .graphql files based a glob pattern",
   "main": "./dist/index.js",
   "scripts": {
