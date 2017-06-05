@@ -1,0 +1,8 @@
+type User {
+    name: String!
+    hash: String
+    salt: String
+}
+type Query {
+    users: [User!]
+}

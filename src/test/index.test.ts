@@ -7,14 +7,15 @@ const it = lab.it
 const before = lab.before
 
 import * as fs from 'fs'
-import * as graphql from 'graphql'
+import { DocumentNode, GraphQLSchema } from 'graphql'
 import * as mkdirp from 'mkdirp'
 import * as rimraf from 'rimraf'
-import { GraphQLLoaderError, loadSchema } from '../index'
+import { GraphQLLoaderError, loadDocument, loadSchema, combineDocuments } from '../index'
 
-const glob = './fixtures/**/*.graphql'
+const glob = './fixtures/swapi/**/*.graphql'
+const userGlob = './fixtures/user/**/*.graphql'
 const invalidGlob = './error/*.graphql'
-const invalidSchemaGlob = './fixtures/*.graphql'
+const invalidSchemaGlob = './fixtures/swapi/*.graphql'
 
 const invalidGlobPattern = /has zero matches/
 const invalidSchemaPattern = /Type .* not found in document./
@@ -25,7 +26,7 @@ describe('Sync Schema Loader', () => {
 
     it('expect schema to be a graphql schema', (done) => {
       expect(schema).to.exist
-      expect(schema).to.be.an.instanceof(graphql.GraphQLSchema)
+      expect(schema).to.be.an.instanceof(GraphQLSchema)
       done()
     })
   })
@@ -62,13 +63,13 @@ describe('Schema Loader', () => {
 
     it('expect schema to be a graphql schema', (done) => {
       expect(schema).to.exist
-      expect(schema).to.be.an.instanceof(graphql.GraphQLSchema)
+      expect(schema).to.be.an.instanceof(GraphQLSchema)
       done()
     })
 
     it('expect callback schema to be a graphql schema', (done) => {
       expect(cbSchema).to.exist
-      expect(cbSchema).to.be.an.instanceof(graphql.GraphQLSchema)
+      expect(cbSchema).to.be.an.instanceof(GraphQLSchema)
       done()
     })
   })
@@ -149,6 +150,47 @@ describe('Schema Loader', () => {
     })
     it('expect callback error to exist', (done) => {
       expect(cbResults).to.exist
+      done()
+    })
+  })
+})
+
+describe('Loading Document', () => {
+  describe(`when loading glob with complete schema "${glob}"`, () => {
+    let doc: DocumentNode
+    before((done) => {
+      loadDocument(glob).then((results) => {
+        doc = results
+        done()
+      })
+    })
+
+    it('expect schema to be a graphql schema', (done) => {
+      expect(doc).to.exist
+      expect(doc.kind).to.equal('Document')
+      done()
+    })
+  })
+})
+
+describe('Combing Documents', () => {
+  describe(`when loading glob with complete schema "${userGlob}"`, () => {
+    let doc: DocumentNode
+    let schema: GraphQLSchema
+    before((done) => {
+      Promise.all([
+        loadDocument(userGlob),
+        loadDocument(glob)
+      ]).then((results) => {
+        doc = results[0]
+        schema = combineDocuments(results)
+        done()
+      })
+    })
+
+    it('expect schema to be a graphql schema', (done) => {
+      expect(schema).to.exist
+      expect(schema).to.be.an.instanceof(GraphQLSchema)
       done()
     })
   })

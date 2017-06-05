@@ -1,6 +1,12 @@
 import * as fs from 'fs'
 import * as glob from 'glob'
-import { buildASTSchema, GraphQLSchema, parse } from 'graphql'
+import {
+  buildASTSchema,
+  concatAST,
+  DocumentNode,
+  GraphQLSchema,
+  parse,
+ } from 'graphql'
 
 export class GraphQLLoaderError extends Error {
   public static zeroMatchError(glob: string): GraphQLLoaderError {
@@ -23,13 +29,25 @@ export interface ILoadSchemaFunc {
 
 const loadSchema: ILoadSchemaFunc = (pattern: string, callback?: ISchemaCallback): Promise<GraphQLSchema> => {
   return new Promise((resolve, reject) => {
-    getGlob(pattern)
-      .then((files) => makeSchema(files))
-      .then((schemaFile) => parseSchema(schemaFile))
+    loadDocument(pattern)
+      .then(buildASTSchema)
       .then((schema) => callback ? callback(null, schema) : resolve(schema))
       .catch((err) => callback ? callback(err, null) : reject(err))
   })
 }
+
+const loadDocument = (pattern: string): Promise<DocumentNode> => {
+  return new Promise((resolve, reject) => {
+    getGlob(pattern)
+      .then(makeSchema)
+      .then(parse)
+      .then(resolve)
+      .catch(reject)
+  })
+}
+
+const combineDocuments = (docs: [DocumentNode]): GraphQLSchema =>
+  buildASTSchema(concatAST(docs))
 
 function makeSchema(fileNames: string[]): Promise<string> {
   const promises = fileNames.map(readFile)
@@ -38,11 +56,6 @@ function makeSchema(fileNames: string[]): Promise<string> {
   }).catch((err) => {
     throw err
   })
-}
-
-function parseSchema(fileData: string) {
-  const doc = parse(fileData)
-  return buildASTSchema(doc)
 }
 
 function getGlob(pattern: string): Promise<string[]> {
@@ -72,7 +85,7 @@ function readFile(fileName: string): Promise<string> {
 loadSchema.sync = (pattern: string): GraphQLSchema => {
   const fileNames = getGlobSync(pattern)
   const schema = makeSchemaSync(fileNames)
-  return parseSchema(schema)
+  return buildASTSchema(parse(schema))
 }
 
 function getGlobSync(pattern: string) {
@@ -92,4 +105,4 @@ function readFileSync(fileName: string): string {
   return fs.readFileSync(fileName, 'utf8')
 }
 
-export { loadSchema }
+export { loadSchema, loadDocument, combineDocuments }
