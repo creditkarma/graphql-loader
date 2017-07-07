@@ -23,22 +23,23 @@ export interface ISchemaCallback {
 }
 
 export interface ILoadSchemaFunc {
-    (pattern: string, callback?: ISchemaCallback): Promise<GraphQLSchema>
+    (pattern: string, options?: glob.IOptions, callback?: ISchemaCallback): Promise<GraphQLSchema>
     sync?: Function
 }
 
-const loadSchema: ILoadSchemaFunc = (pattern: string, callback?: ISchemaCallback): Promise<GraphQLSchema> => {
-  return new Promise((resolve, reject) => {
-    loadDocument(pattern)
-      .then(buildASTSchema)
-      .then((schema) => callback ? callback(null, schema) : resolve(schema))
-      .catch((err) => callback ? callback(err, null) : reject(err))
-  })
+const loadSchema: ILoadSchemaFunc =
+  (pattern: string, options?: glob.IOptions, callback?: ISchemaCallback): Promise<GraphQLSchema> => {
+    return new Promise((resolve, reject) => {
+      loadDocument(pattern, options)
+        .then(buildASTSchema)
+        .then((schema) => callback ? callback(null, schema) : resolve(schema))
+        .catch((err) => callback ? callback(err, null) : reject(err))
+    })
 }
 
-const loadDocument = (pattern: string): Promise<DocumentNode> => {
+const loadDocument = (pattern: string, options?: glob.IOptions): Promise<DocumentNode> => {
   return new Promise((resolve, reject) => {
-    getGlob(pattern)
+    getGlob(pattern, options)
       .then(makeSchema)
       .then(parse)
       .then(resolve)
@@ -58,9 +59,9 @@ const makeSchema = (fileNames: string[]): Promise<string> => {
   })
 }
 
-const getGlob = (pattern: string): Promise<string[]> => {
+const getGlob = (pattern: string, options?: glob.IOptions): Promise<string[]> => {
   return new Promise((resolve, reject) => {
-    glob(pattern, (err, files) => {
+    glob(pattern, options, (err, files) => {
       if (files.length === 0) {
         reject(GraphQLLoaderError.zeroMatchError(pattern) )
       } else {
@@ -82,13 +83,13 @@ const readFile = (fileName: string): Promise<string> => {
   })
 }
 
-loadSchema.sync = (pattern: string): GraphQLSchema => {
-  const fileNames = getGlobSync(pattern)
+loadSchema.sync = (pattern: string, options?: glob.IOptions): GraphQLSchema => {
+  const fileNames = getGlobSync(pattern, options)
   const schema = makeSchemaSync(fileNames)
   return buildASTSchema(parse(schema))
 }
 
-const getGlobSync = (pattern: string) => {
+const getGlobSync = (pattern: string, options?: glob.IOptions) => {
   const fileNames = glob.sync(pattern)
   if (fileNames.length === 0) {
     throw GraphQLLoaderError.zeroMatchError(pattern)

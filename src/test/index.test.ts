@@ -54,7 +54,33 @@ describe('Schema Loader', () => {
     before((done) => {
       loadSchema(glob).then((results) => {
         schema = results
-        loadSchema(glob, (err, cbResults) => {
+        loadSchema(glob, {}, (err, cbResults) => {
+          cbSchema = cbResults
+          done()
+        })
+      })
+    })
+
+    it('expect schema to be a graphql schema', (done) => {
+      expect(schema).to.exist
+      expect(schema).to.be.an.instanceof(GraphQLSchema)
+      done()
+    })
+
+    it('expect callback schema to be a graphql schema', (done) => {
+      expect(cbSchema).to.exist
+      expect(cbSchema).to.be.an.instanceof(GraphQLSchema)
+      done()
+    })
+  })
+
+  describe(`when loading glob with options "${glob}"`, () => {
+    let schema
+    let cbSchema
+    before((done) => {
+      loadSchema(glob).then((results) => {
+        schema = results
+        loadSchema(glob, {cwd: process.cwd()}, (err, cbResults) => {
           cbSchema = cbResults
           done()
         })
@@ -80,7 +106,7 @@ describe('Schema Loader', () => {
     before((done) => {
       loadSchema(invalidGlob).catch((err) => {
         schemaErrors = err
-        loadSchema(invalidGlob, (cbErr) => {
+        loadSchema(invalidGlob, {}, (cbErr) => {
           cbSchemaErrors = cbErr
           done()
         })
