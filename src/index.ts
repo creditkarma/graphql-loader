@@ -49,7 +49,7 @@ const loadDocument = (pattern: string): Promise<DocumentNode> => {
 const combineDocuments = (docs: [DocumentNode]): GraphQLSchema =>
   buildASTSchema(concatAST(docs))
 
-function makeSchema(fileNames: string[]): Promise<string> {
+const makeSchema = (fileNames: string[]): Promise<string> => {
   const promises = fileNames.map(readFile)
   return Promise.all( promises ).then((fileContentArr: string[]) => {
     return fileContentArr.join()
@@ -58,7 +58,7 @@ function makeSchema(fileNames: string[]): Promise<string> {
   })
 }
 
-function getGlob(pattern: string): Promise<string[]> {
+const getGlob = (pattern: string): Promise<string[]> => {
   return new Promise((resolve, reject) => {
     glob(pattern, (err, files) => {
       if (files.length === 0) {
@@ -70,7 +70,7 @@ function getGlob(pattern: string): Promise<string[]> {
   })
 }
 
-function readFile(fileName: string): Promise<string> {
+const readFile = (fileName: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     fs.readFile(fileName, 'utf8', (err, data) => {
       if (err) {
@@ -88,7 +88,7 @@ loadSchema.sync = (pattern: string): GraphQLSchema => {
   return buildASTSchema(parse(schema))
 }
 
-function getGlobSync(pattern: string) {
+const getGlobSync = (pattern: string) => {
   const fileNames = glob.sync(pattern)
   if (fileNames.length === 0) {
     throw GraphQLLoaderError.zeroMatchError(pattern)
@@ -97,11 +97,11 @@ function getGlobSync(pattern: string) {
   }
 }
 
-function makeSchemaSync(fileNames: string[]) {
+const makeSchemaSync = (fileNames: string[]) => {
   return fileNames.map(readFileSync).join()
 }
 
-function readFileSync(fileName: string): string {
+const readFileSync = (fileName: string): string => {
   return fs.readFileSync(fileName, 'utf8')
 }
 
