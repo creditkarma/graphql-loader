@@ -10,7 +10,7 @@ import * as fs from 'fs'
 import { DocumentNode, GraphQLSchema } from 'graphql'
 import * as mkdirp from 'mkdirp'
 import * as rimraf from 'rimraf'
-import { GraphQLLoaderError, loadDocument, loadSchema, combineDocuments } from '../index'
+import { combineDocuments, GraphQLLoaderError, loadDocument, loadSchema } from '../index'
 
 const glob = './fixtures/swapi/**/*.graphql'
 const userGlob = './fixtures/user/**/*.graphql'
@@ -180,7 +180,7 @@ describe('Combing Documents', () => {
     before((done) => {
       Promise.all([
         loadDocument(userGlob),
-        loadDocument(glob)
+        loadDocument(glob),
       ]).then((results) => {
         doc = results[0]
         schema = combineDocuments(results)
