@@ -3,6 +3,9 @@ type User {
     hash: String
     salt: String
 }
-type Query {
+type RootQuery {
     users: [User!]
+}
+schema {
+  query: RootQuery
 }

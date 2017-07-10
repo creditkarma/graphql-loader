@@ -2,11 +2,14 @@ import * as fs from 'fs'
 import * as glob from 'glob'
 import {
   buildASTSchema,
-  concatAST,
   DocumentNode,
   GraphQLSchema,
+  ObjectTypeDefinitionNode,
   parse,
+  SchemaDefinitionNode,
  } from 'graphql'
+
+ import * as Kind from 'graphql/language/kinds'
 
 export class GraphQLLoaderError extends Error {
   public static zeroMatchError(glob: string): GraphQLLoaderError {
@@ -27,7 +30,11 @@ export interface ILoadSchemaFunc {
     sync?: Function
 }
 
-const loadSchema: ILoadSchemaFunc = (pattern: string, callback?: ISchemaCallback): Promise<GraphQLSchema> => {
+/**
+ * Given a GLOB pattern, it will load all the content of the files matching the GLOB, combine them
+ * together and return a GraphQL Schema
+ */
+export const loadSchema: ILoadSchemaFunc = (pattern: string, callback?: ISchemaCallback): Promise<GraphQLSchema> => {
   return new Promise((resolve, reject) => {
     loadDocument(pattern)
       .then(buildASTSchema)
@@ -36,26 +43,73 @@ const loadSchema: ILoadSchemaFunc = (pattern: string, callback?: ISchemaCallback
   })
 }
 
-const loadDocument = (pattern: string): Promise<DocumentNode> => {
-  return new Promise((resolve, reject) => {
-    getGlob(pattern)
-      .then(makeSchema)
-      .then(parse)
-      .then(resolve)
-      .catch(reject)
-  })
-}
+/**
+ * Given a GLOB pattern, load the matching files, combine them together and return a GraphQL AST in
+ * the form of a DocumentNode
+ */
+export const loadDocument = (pattern: string): Promise<DocumentNode> =>
+  getGlob(pattern).then(combineFiles).then(parse)
 
-const combineDocuments = (docs: [DocumentNode]): GraphQLSchema =>
+/**
+ * Given an array of DocumentNodes, merge them together and return a GraphQLSchema
+ * * Any duplicate Type definitions will be merged by concating their fields
+ * * Any duplicate Schema definitions will be merged by concating their operations
+ */
+export const combineDocuments = (docs: [DocumentNode]): GraphQLSchema =>
   buildASTSchema(concatAST(docs))
 
-const makeSchema = (fileNames: string[]): Promise<string> => {
-  const promises = fileNames.map(readFile)
-  return Promise.all( promises ).then((fileContentArr: string[]) => {
-    return fileContentArr.join()
-  }).catch((err) => {
-    throw err
+const filterDups = (dups: ObjectTypeDefinitionNode[], doc: ObjectTypeDefinitionNode, index: number, orig) => {
+  const hasDups = orig.filter((_) => _.name.value === doc.name.value).length > 1
+  const docInDups = dups.find((_) => _.name.value === doc.name.value)
+  return hasDups && !docInDups ? dups.concat(doc) : dups
+}
+
+const mergeFields = (allDefs: ObjectTypeDefinitionNode[]) => (dup) => {
+  allDefs.forEach((def) => {
+    if (def.name && def.name.value === dup.name.value && def !== dup) {
+      dup.fields = dup.fields.concat(def.fields)
+    }
   })
+  return dup
+}
+
+const mergeOperations = (allDefs: SchemaDefinitionNode[]) => (dup) => {
+  allDefs.forEach((def) => {
+    if (def.kind === Kind.SCHEMA_DEFINITION && def !== dup) {
+      const findTypes = (opType) => !dup.operationTypes.find((dupType) => dupType.operation === opType.operation)
+      const deduped = def.operationTypes.filter(findTypes)
+      dup.operationTypes = dup.operationTypes.concat(deduped)
+    }
+  })
+  return dup
+}
+
+const isKind = (kind) => (def) => def.kind === kind
+
+const filterSchemaAndDups = (dups) => (def) =>
+  def.kind !== Kind.SCHEMA_DEFINITION && dups.find((_) => _.name.value !== def.name.value)
+
+const concatAST = (documents: DocumentNode[]): DocumentNode => {
+  const allDefs = documents.reduce((defs, doc) => defs.concat(doc.definitions), [])
+
+  // find all duplicate type definitions and merge their fields together
+  const dups = allDefs.filter(isKind(Kind.OBJECT_TYPE_DEFINITION)).reduce(filterDups, []).map(mergeFields(allDefs))
+  // find all duplicate schema definitions and merge their operations together
+  const schemas = allDefs.filter(isKind(Kind.SCHEMA_DEFINITION)).slice(0, 1).map(mergeOperations(allDefs))
+
+  const definitions = allDefs.filter(filterSchemaAndDups(dups)).concat(schemas, dups)
+
+  return {
+    definitions,
+    kind: 'Document',
+  }
+}
+
+const combineFiles = (fileNames: string[]): Promise<string> => {
+  const promises = fileNames.map(readFile)
+  return Promise.all( promises )
+    .then((fileContents) => fileContents.join())
+    .catch((err) => { throw err })
 }
 
 const getGlob = (pattern: string): Promise<string[]> => {
@@ -104,5 +158,3 @@ const makeSchemaSync = (fileNames: string[]) => {
 const readFileSync = (fileName: string): string => {
   return fs.readFileSync(fileName, 'utf8')
 }
-
-export { loadSchema, loadDocument, combineDocuments }
