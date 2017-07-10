@@ -1,0 +1,11 @@
+type User {
+    name: String!
+    hash: String
+    salt: String
+}
+type RootQuery {
+    users: [User!]
+}
+schema {
+  query: RootQuery
+}
