@@ -86,8 +86,9 @@ const mergeOperations = (allDefs: SchemaDefinitionNode[]) => (dup) => {
 
 const isKind = (kind) => (def) => def.kind === kind
 
-const filterSchemaAndDups = (dups) => (def) =>
-  def.kind !== Kind.SCHEMA_DEFINITION && dups.find((_) => _.name.value !== def.name.value)
+const filterSchemaAndDups = (dups) => (def) => {
+  return def.kind !== Kind.SCHEMA_DEFINITION && !dups.find((_) => _.name.value === def.name.value)
+}
 
 const concatAST = (documents: DocumentNode[]): DocumentNode => {
   const allDefs = documents.reduce((defs, doc) => defs.concat(doc.definitions), [])
