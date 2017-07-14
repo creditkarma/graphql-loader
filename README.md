@@ -68,6 +68,21 @@ console.log(schema.getQueryType().toString())
 
 ```
 
+## executableSchemaFromModules
+
+Given an array of GraphQL Modules or functions that returns a GraphQL Module or Promise,
+merge the documents and resolvers together and return an executable GraphQL Schema
+
+GraphQL modules are comprised of a document node and resolvers to provide away to decompose
+a GraphQL server into stand alone Node.js modules.  These modules expose a DocumentNode because
+document nodes are valid GraphQL segments that are not required to be a complete valid schema.
+
+It is required that the combination of GraphQLModules passed in results in a completely valid GraphQLSchema.
+
+```js
+
+```
+
 ## loadDocument
 
 Given a GLOB pattern, load the matching files, combine them together and return a GraphQL AST in
@@ -87,8 +102,8 @@ loader.loadDocument('./schema/*.graphql').then((doc) => {
 ## combineDocuments
 
 Given an array of DocumentNodes, merge them together and return a GraphQLSchema
-* Any duplicate Type definitions will be merged by concating their fields
-* Any duplicate Schema definitions will be merged by concating their operations
+* Any duplicate Type definitions will be merged by concatenating their fields
+* Any duplicate Schema definitions will be merged by concatenating their operations
 
 Combine several documents into a GraphqlSchema
 

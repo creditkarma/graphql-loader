@@ -1,3 +1,4 @@
+import * as deepmerge from 'deepmerge'
 import * as fs from 'fs'
 import * as glob from 'glob'
 import {
@@ -8,6 +9,7 @@ import {
   parse,
   SchemaDefinitionNode,
  } from 'graphql'
+import { addResolveFunctionsToSchema } from 'graphql-tools'
 
  import * as Kind from 'graphql/language/kinds'
 
@@ -30,9 +32,20 @@ export interface ILoadSchemaFunc {
     sync?: Function
 }
 
+export interface IGraphQLModule {
+    document: DocumentNode,
+    resolvers: any
+}
+
+export interface IGraphQLModuleFunction {
+    (): IGraphQLModule | Promise<IGraphQLModule>
+}
+
 /**
  * Given a GLOB pattern, it will load all the content of the files matching the GLOB, combine them
  * together and return a GraphQL Schema
+ * @param pattern String - GLOB pattern
+ * @param callback ISchemaCallback
  */
 export const loadSchema: ILoadSchemaFunc = (pattern: string, callback?: ISchemaCallback): Promise<GraphQLSchema> => {
   return new Promise((resolve, reject) => {
@@ -46,6 +59,7 @@ export const loadSchema: ILoadSchemaFunc = (pattern: string, callback?: ISchemaC
 /**
  * Given a GLOB pattern, load the matching files, combine them together and return a GraphQL AST in
  * the form of a DocumentNode
+ * @param pattern String - GLOB pattern
  */
 export const loadDocument = (pattern: string): Promise<DocumentNode> =>
   getGlob(pattern).then(combineFiles).then(parse)
@@ -54,9 +68,38 @@ export const loadDocument = (pattern: string): Promise<DocumentNode> =>
  * Given an array of DocumentNodes, merge them together and return a GraphQLSchema
  * * Any duplicate Type definitions will be merged by concating their fields
  * * Any duplicate Schema definitions will be merged by concating their operations
+ * @param docs DocumentNode[]
  */
-export const combineDocuments = (docs: [DocumentNode]): GraphQLSchema =>
+export const combineDocuments = (docs: DocumentNode[]): GraphQLSchema =>
   buildASTSchema(concatAST(docs))
+
+/**
+ * Given an array of GraphQLModules or functions that return a GraphQLModule or Promise,
+ * merge the documents and resolvers together and return an executable GraphQL Schema
+ * @param modules IGraphQLModule[] | IGraphQLModuleFunction[]
+ */
+export const executableSchemaFromModules =
+  (modules: IGraphQLModule[] | IGraphQLModuleFunction[]): Promise<GraphQLSchema> => {
+    const promises = convertModulesToPromises(modules)
+    return Promise.all(promises).then((gqlModules) => {
+      const schema = combineDocuments(gqlModules.map((mod) => mod.document))
+      const resolvers = gqlModules.reduce((prev, curr) => deepmerge(prev, curr.resolvers), {})
+      addResolveFunctionsToSchema(schema, resolvers)
+      return schema
+    })
+}
+
+const convertModulesToPromises =
+  (modules: IGraphQLModule[] | IGraphQLModuleFunction[]): Array<Promise<IGraphQLModule>> => {
+    return (<IGraphQLModuleFunction[]> modules).map((mod) => {
+      const result = typeof mod === 'function' ? mod() : mod
+      if ((<IGraphQLModule> result).document) {
+        return Promise.resolve(result)
+      } else {
+        return <Promise<IGraphQLModule>> result
+      }
+    })
+  }
 
 const filterDups = (dups: ObjectTypeDefinitionNode[], doc: ObjectTypeDefinitionNode, index: number, orig) => {
   const hasDups = orig.filter((_) => _.name.value === doc.name.value).length > 1
