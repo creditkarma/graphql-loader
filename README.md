@@ -77,9 +77,16 @@ GraphQL modules are comprised of a document node and resolvers to provide away t
 a GraphQL server into stand alone Node.js modules.  These modules expose a DocumentNode because
 document nodes are valid GraphQL segments that are not required to be a complete valid schema.
 
-It is required that the combination of GraphQLModules passed in results in a completely valid GraphQLSchema.
+It is required that the combination of GraphQLModules results in a completely valid GraphQLSchema.
 
 ```js
+const modules = [
+  () => loadDocument('./fixtures/user/**/*.graphql').then((document) => ({ document, resolvers: {}})),
+  () => loadDocument('./fixtures/swapi/**/*.graphql').then((document) => ({ document, resolvers: {}})),
+]
+executableSchemaFromModules(modules).then((schema) => {
+  console.log(schema.getQueryType().toString())
+})
 
 ```
 
