@@ -10,7 +10,13 @@ import * as fs from 'fs'
 import { DocumentNode, GraphQLSchema } from 'graphql'
 import * as mkdirp from 'mkdirp'
 import * as rimraf from 'rimraf'
-import { combineDocuments, GraphQLLoaderError, loadDocument, loadSchema } from '../index'
+import {
+  combineDocuments,
+  executableSchemaFromModules,
+  GraphQLLoaderError,
+  loadDocument,
+  loadSchema,
+} from '../index'
 
 const glob = './fixtures/swapi/**/*.graphql'
 const userGlob = './fixtures/user/**/*.graphql'
@@ -158,12 +164,7 @@ describe('Schema Loader', () => {
 describe('Loading Document', () => {
   describe(`when loading glob with complete schema "${glob}"`, () => {
     let doc: DocumentNode
-    before((done) => {
-      loadDocument(glob).then((results) => {
-        doc = results
-        done()
-      })
-    })
+    before(() => loadDocument(glob).then((results) => doc = results))
 
     it('expect schema to be a graphql schema', (done) => {
       expect(doc).to.exist
@@ -177,15 +178,74 @@ describe('Combing Documents', () => {
   describe(`when loading glob with complete schema "${userGlob}"`, () => {
     let doc: DocumentNode
     let schema: GraphQLSchema
-    before((done) => {
-      Promise.all([
+    before(() => {
+      return Promise.all([
         loadDocument(userGlob),
         loadDocument(glob),
       ]).then((results) => {
         doc = results[0]
         schema = combineDocuments(results)
-        done()
       })
+    })
+
+    it('expect schema to be a graphql schema', (done) => {
+      expect(schema).to.exist
+      expect(schema).to.be.an.instanceof(GraphQLSchema)
+      done()
+    })
+  })
+      })
+
+describe('Build Executable Schema From GraphQL Modules', () => {
+  describe(`when preloading documents`, () => {
+    let doc: DocumentNode
+    let schema: GraphQLSchema
+    before(() => {
+      return Promise.all([
+        loadDocument(userGlob),
+        loadDocument(glob),
+      ]).then((results) => {
+        const modules = results.map((document) => ({ document, resolvers: {} }))
+        return executableSchemaFromModules(modules).then((execSchema) => schema = execSchema)
+      })
+    })
+
+    it('expect schema to be a graphql schema', (done) => {
+      expect(schema).to.exist
+      expect(schema).to.be.an.instanceof(GraphQLSchema)
+      done()
+    })
+  })
+
+  describe(`when providing array of functions`, () => {
+    let doc: DocumentNode
+    let schema: GraphQLSchema
+    before(() => {
+      return Promise.all([
+        loadDocument(userGlob),
+        loadDocument(glob),
+      ]).then((results) => {
+        const modules = results.map((document) => () => ({ document, resolvers: {} }))
+        return executableSchemaFromModules(modules).then((execSchema) => schema = execSchema)
+      })
+    })
+
+    it('expect schema to be a graphql schema', (done) => {
+      expect(schema).to.exist
+      expect(schema).to.be.an.instanceof(GraphQLSchema)
+      done()
+    })
+  })
+
+  describe(`when using promises`, () => {
+    let doc: DocumentNode
+    let schema: GraphQLSchema
+    before(() => {
+      const modules = [
+        () => loadDocument(userGlob).then((document) => ({ document, resolvers: {}})),
+        () => loadDocument(glob).then((document) => ({ document, resolvers: {}})),
+      ]
+      return executableSchemaFromModules(modules).then((execSchema) => schema = execSchema)
     })
 
     it('expect schema to be a graphql schema', (done) => {
