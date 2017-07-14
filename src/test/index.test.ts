@@ -191,7 +191,7 @@ describe('Combing Documents', () => {
     it('expect schema to be a graphql schema', (done) => {
       expect(schema).to.exist
       expect(schema).to.be.an.instanceof(GraphQLSchema)
-        done()
+      done()
     })
   })
       })
