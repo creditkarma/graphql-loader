@@ -83,7 +83,7 @@ export const executableSchemaFromModules =
     const promises = convertModulesToPromises(modules)
     return Promise.all(promises).then((gqlModules) => {
       const schema = combineDocuments(gqlModules.map((mod) => mod.document))
-      const resolvers = gqlModules.reduce((prev, curr) => deepmerge(prev, curr.resolvers), {})
+      const resolvers = gqlModules.reduce((prev, curr) => deepmerge(prev, curr.resolvers || {}), {})
       addResolveFunctionsToSchema(schema, resolvers)
       return schema
     })

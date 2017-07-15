@@ -243,7 +243,7 @@ describe('Build Executable Schema From GraphQL Modules', () => {
     before(() => {
       const modules = [
         () => loadDocument(userGlob).then((document) => ({ document, resolvers: {}})),
-        () => loadDocument(glob).then((document) => ({ document, resolvers: {}})),
+        () => loadDocument(glob).then((document) => ({ document })),
       ]
       return executableSchemaFromModules(modules).then((execSchema) => schema = execSchema)
     })
