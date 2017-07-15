@@ -34,7 +34,7 @@ export interface ILoadSchemaFunc {
 
 export interface IGraphQLModule {
     document: DocumentNode,
-    resolvers: any
+    resolvers?: any
 }
 
 export interface IGraphQLModuleFunction {
