@@ -6,6 +6,7 @@
     "url": "https://github.com/creditkarma/graphql-loader"
   },
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "clean": "rimraf coverage/ dist/ node_modules/ typings/",
     "build": "tsc",
@@ -50,8 +51,5 @@
   },
   "peerDependencies": {
     "graphql": "^0.9.0 || ^0.10.1"
-  },
-  "typescript": {
-    "definition": "dist/index.d.ts"
   }
 }
