@@ -1,6 +1,6 @@
 import * as deepmerge from 'deepmerge'
 import * as fs from 'fs'
-import * as glob from 'glob'
+import * as Glob from 'glob'
 import {
   buildASTSchema,
   DocumentNode,
@@ -11,7 +11,7 @@ import {
  } from 'graphql'
 import { addResolveFunctionsToSchema } from 'graphql-tools'
 
- import * as Kind from 'graphql/language/kinds'
+import * as Kind from 'graphql/language/kinds'
 
 export class GraphQLLoaderError extends Error {
   public static zeroMatchError(glob: string): GraphQLLoaderError {
@@ -29,7 +29,7 @@ export interface ISchemaCallback {
 
 export interface ILoadSchemaFunc {
     (pattern: string, callback?: ISchemaCallback): Promise<GraphQLSchema>
-    sync?: Function
+    sync?: (pattern: string) => GraphQLSchema
 }
 
 export interface IGraphQLModule {
@@ -37,9 +37,7 @@ export interface IGraphQLModule {
     resolvers?: any
 }
 
-export interface IGraphQLModuleFunction {
-    (): IGraphQLModule | Promise<IGraphQLModule>
-}
+export type IGraphQLModuleFunction = () => IGraphQLModule | Promise<IGraphQLModule>
 
 /**
  * Given a GLOB pattern, it will load all the content of the files matching the GLOB, combine them
@@ -86,17 +84,17 @@ export const executableSchemaFromModules =
       const resolvers = gqlModules.reduce((prev, curr) => deepmerge(prev, curr.resolvers || {}), {})
       addResolveFunctionsToSchema(schema, resolvers)
       return schema
-    }).catch(e => { throw e })
+    }).catch((e) => { throw e })
 }
 
 const convertModulesToPromises =
   (modules: IGraphQLModule[] | IGraphQLModuleFunction[]): Array<Promise<IGraphQLModule>> => {
-    return (<IGraphQLModuleFunction[]> modules).map((mod) => {
+    return (modules as IGraphQLModuleFunction[]).map((mod) => {
       const result = typeof mod === 'function' ? mod() : mod
-      if ((<IGraphQLModule> result).document) {
+      if ((result as IGraphQLModule).document) {
         return Promise.resolve(result)
       } else {
-        return <Promise<IGraphQLModule>> result
+        return result as Promise<IGraphQLModule>
       }
     })
   }
@@ -158,7 +156,7 @@ const combineFiles = (fileNames: string[]): Promise<string> => {
 
 const getGlob = (pattern: string): Promise<string[]> => {
   return new Promise((resolve, reject) => {
-    glob(pattern, (err, files) => {
+    Glob(pattern, (err, files) => {
       if (files.length === 0) {
         reject(GraphQLLoaderError.zeroMatchError(pattern) )
       } else {
@@ -187,7 +185,7 @@ loadSchema.sync = (pattern: string): GraphQLSchema => {
 }
 
 const getGlobSync = (pattern: string) => {
-  const fileNames = glob.sync(pattern)
+  const fileNames = Glob.sync(pattern)
   if (fileNames.length === 0) {
     throw GraphQLLoaderError.zeroMatchError(pattern)
   } else {
