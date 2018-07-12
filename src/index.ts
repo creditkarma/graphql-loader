@@ -11,7 +11,7 @@ import {
  } from 'graphql'
 import { addResolveFunctionsToSchema } from 'graphql-tools'
 
-import * as Kind from 'graphql/language/kinds'
+import { Kind } from 'graphql/language/kinds'
 
 export class GraphQLLoaderError extends Error {
   public static zeroMatchError(glob: string): GraphQLLoaderError {
